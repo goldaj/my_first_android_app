@@ -1,0 +1,10 @@
+<!-- Ce fichier correspond aux différents textes affichés dans l'application.
+  Si on souhaite modifier un des textes affiché c'est ici que ça se passe. -->
+<resources>
+    <string name="app_name">Todo list</string>
+    <string name="task_title">default_task_title</string>
+    <string name="done">Fait</string>
+    <string name="undo">À faire</string>
+    <string name="delete">Supprimer</string>
+    <string name="add_task">Ajouter une tâche</string>
+</resources>

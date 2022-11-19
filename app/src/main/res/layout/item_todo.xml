@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center_vertical">
+<!-- Dans ce fichier on va avoir tout ce qui défini une tâche.
+  C'est à dire, pour chaque ligne correspondant à une tâche, on souhaite avoir :
+  Le "titre" de la tâche, qui correspond à ce qui doit être fait.
+  Le bouton "fait" ou "à faire" pour savoir où en est l'avancement de la tâche.
+  Le bouton "supprimer" pour pouvoir retirer la tâche quand on ne souhaite plus la voir dans la liste.
+-->
+
+
+    <TextView
+        android:id="@+id/task_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="10dp"
+        android:text="@string/task_title"
+        android:textSize="20sp" />
+
+    <Button
+        android:id="@+id/task_done"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="139dp"
+        android:onClick="doneTask"
+        android:text="@string/done"
+        android:visibility="visible" />
+
+    <Button
+        android:id="@+id/task_undo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="137dp"
+        android:onClick="undoTask"
+        android:text="@string/undo"
+        android:visibility="invisible" />
+
+    <Button
+        android:id="@+id/task_delete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="1dp"
+        android:onClick="deleteTask"
+        android:text="@string/delete" />
+
+</RelativeLayout>
