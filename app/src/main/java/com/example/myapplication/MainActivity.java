@@ -50,30 +50,6 @@ public class MainActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
-    // Méthode qui va servir à rajouter une tâche lorsqu'on clic sur le bouton d'ajout
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_add_task) {
-            final EditText taskEditText = new EditText(this);
-            // Affichage d'une popup pour saisir la nouvelle tâche
-            AlertDialog dialog = new AlertDialog.Builder(this)
-                    .setTitle("Ajouter une nouvelle tâche")
-                    .setMessage("Que souhaitez-vous faire ensuite ?")
-                    .setView(taskEditText)
-                    .setPositiveButton("Ajouter", (ajoutDialog, which) -> {
-                        //Mise à jour de la base de données avec la nouvelle tâche
-                        addInDataBase(String.valueOf(taskEditText.getText()));
-                        //Mise à jour de l'affiche de la nouvelle tâche sur le téléphone
-                        updateUI();
-                    })
-                    .setNegativeButton("Annuler", null)
-                    .create();
-            dialog.show();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
     /* Méthode qui va servir à sauvegarder dans la base de données qu'on a bien rajouté la tâche.
        Sans ça, lorsqu'on redémarre l'application on perdrait toutes nous tâches.
     */
@@ -90,6 +66,72 @@ public class MainActivity extends AppCompatActivity {
                 values,
                 SQLiteDatabase.CONFLICT_REPLACE);
         db.close();
+    }
+
+    // Méthode générique qui sert à plusieurs endroits pour mettre à jour la base de données et enregistrer les informations
+    private void updateInDataBase(String title, TaskState state) {
+        ContentValues values = new ContentValues();
+        // Rajout du nom de la tâche avec la valeur sélectionnée par l'utilisateur
+        values.put(TaskContract.TaskEntry.COL_TASK_TITLE, title);
+        // On créé/modifie la tâche avec l'état actuel de la tâche
+        values.put(TaskContract.TaskEntry.COL_TASK_STATE, String.valueOf(state));
+
+        // Enregistrement en base de données
+        SQLiteDatabase db = mHelper.getWritableDatabase();
+        db.updateWithOnConflict(TaskContract.TaskEntry.TABLE,
+                values,
+                TaskContract.TaskEntry.COL_TASK_TITLE + "= ?" ,
+                new String[]{title},
+                SQLiteDatabase.CONFLICT_IGNORE);
+        db.close();
+    }
+
+    // Méthode qui va gérer comment on affiche les différents éléments à l'écran
+    // en fonctionn des informations qu'on a en base de données.
+    private void updateUI() {
+        ArrayList<Task> taskList = new ArrayList<>();
+
+        // Récupération des tâches existantes dans la base de données
+        SQLiteDatabase db = mHelper.getReadableDatabase();
+        Cursor cursor = db.query(TaskContract.TaskEntry.TABLE,
+                new String[]{ TaskContract.TaskEntry._ID, TaskContract.TaskEntry.COL_TASK_TITLE, TaskContract.TaskEntry.COL_TASK_STATE },
+                null, null, null, null, null);
+
+        // Pour toutes les tâches récupérées de la base de données, on défini les valeurs du titre et de l'état
+        while (cursor.moveToNext()) {
+            int idx = cursor.getColumnIndex(TaskContract.TaskEntry.COL_TASK_TITLE);
+            int state = cursor.getColumnIndex(TaskContract.TaskEntry.COL_TASK_STATE);
+            taskList.add(new Task(cursor.getString(idx), TaskState.valueOf(cursor.getString(state))));
+        }
+
+        // Création de l'affichage à l'écran du téléphone
+        if (mAdapter == null) {
+            mAdapter = new TaskArrayAdapter(this, taskList);
+            mTaskListView.setAdapter(mAdapter);
+        } else {
+            mAdapter.clear();
+            mAdapter.addAll(taskList);
+            mAdapter.notifyDataSetChanged();
+        }
+
+        // On referme toujours la base de données parès l'avoir ouverte
+        cursor.close();
+        db.close();
+    }
+
+    // Méthode qui va servir à rajouter une tâche lorsqu'on clic sur le bouton d'ajout
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_add_task) {
+            final EditText taskEditText = new EditText(this);
+            // Affichage d'une popup pour saisir la nouvelle tâche
+            AlertDialog dialog = new AlertDialog.Builder(this)
+                    .setView(taskEditText)
+                    .create();
+            dialog.show();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     // Méthode qui se lance lorsqu'on utilise le bouton indiquant qu'une tâche est faite.
@@ -148,56 +190,5 @@ public class MainActivity extends AppCompatActivity {
                 new String[]{task});
         db.close();
         updateUI();
-    }
-
-    // Méthode générique qui sert à plusieurs endroits pour mettre à jour la base de données et enregistrer les informations
-    private void updateInDataBase(String title, TaskState state) {
-        ContentValues values = new ContentValues();
-        // Rajout du nom de la tâche avec la valeur sélectionnée par l'utilisateur
-        values.put(TaskContract.TaskEntry.COL_TASK_TITLE, title);
-        // On créé/modifie la tâche avec l'état actuel de la tâche
-        values.put(TaskContract.TaskEntry.COL_TASK_STATE, String.valueOf(state));
-
-        // Enregistrement en base de données
-        SQLiteDatabase db = mHelper.getWritableDatabase();
-        db.updateWithOnConflict(TaskContract.TaskEntry.TABLE,
-                values,
-                TaskContract.TaskEntry.COL_TASK_TITLE + "= ?" ,
-                new String[]{title},
-                SQLiteDatabase.CONFLICT_IGNORE);
-        db.close();
-    }
-
-    // Méthode qui va gérer comment on affiche les différents éléments à l'écran
-    // en fonctionn des informations qu'on a en base de données.
-    private void updateUI() {
-        ArrayList<Task> taskList = new ArrayList<>();
-
-        // Récupération des tâches existantes dans la base de données
-        SQLiteDatabase db = mHelper.getReadableDatabase();
-        Cursor cursor = db.query(TaskContract.TaskEntry.TABLE,
-                new String[]{ TaskContract.TaskEntry._ID, TaskContract.TaskEntry.COL_TASK_TITLE, TaskContract.TaskEntry.COL_TASK_STATE },
-                null, null, null, null, null);
-
-        // Pour toutes les tâches récupérées de la base de données, on défini les valeurs du titre et de l'état
-        while (cursor.moveToNext()) {
-            int idx = cursor.getColumnIndex(TaskContract.TaskEntry.COL_TASK_TITLE);
-            int state = cursor.getColumnIndex(TaskContract.TaskEntry.COL_TASK_STATE);
-            taskList.add(new Task(cursor.getString(idx), TaskState.valueOf(cursor.getString(state))));
-        }
-
-        // Création de l'affichage à l'écran du téléphone
-        if (mAdapter == null) {
-            mAdapter = new TaskArrayAdapter(this, taskList);
-            mTaskListView.setAdapter(mAdapter);
-        } else {
-            mAdapter.clear();
-            mAdapter.addAll(taskList);
-            mAdapter.notifyDataSetChanged();
-        }
-
-        // On referme toujours la base de données parès l'avoir ouverte
-        cursor.close();
-        db.close();
     }
 }
