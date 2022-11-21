@@ -128,6 +128,8 @@ public class MainActivity extends AppCompatActivity {
             AlertDialog dialog = new AlertDialog.Builder(this)
                     .setView(taskEditText)
                     .create();
+
+
             dialog.show();
             return true;
         }
@@ -136,59 +138,43 @@ public class MainActivity extends AppCompatActivity {
 
     // Méthode qui se lance lorsqu'on utilise le bouton indiquant qu'une tâche est faite.
     public void doneTask(View view) {
+        //On récupère le nom de la tâche dont on souhaite mettre l'état à jour
         View parent = (View) view.getParent();
         TextView task = parent.findViewById(R.id.task_title);
-        // On affiche le texte de façon à ce qu'il soit barré
-        task.setPaintFlags(task.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+        String taskName = String.valueOf(task.getText());
+
 
         // On rend le bouton "fait" invisible. Puisqu'on vient de cliquer dessus, c'est que la tâche est déjà faite.
         Button doneButton = parent.findViewById(R.id.task_done);
-        doneButton.setVisibility(View.INVISIBLE);
+
+
         // À la place, on fait apparaître le bouton "à faire", au cas où on s'est trompé et qu'on souhaite annuler la précédente action
         Button undoButton = parent.findViewById(R.id.task_undo);
-        undoButton.setVisibility(View.VISIBLE);
 
-        String taskName = String.valueOf(task.getText());
 
-        // On enregistre en base de données. Sinon en redémarrant l'application on perdrait le statut de toutes nos tâches.
-        updateInDataBase(taskName, TaskState.DONE);
     }
 
     // Méthode qui se lance lorsqu'on utilise le bouton indiquant qu'une tâche est à faire.
     public void undoTask(View view) {
+        //On récupère le nom de la tâche dont on souhaite mettre l'état à jour
         View parent = (View) view.getParent();
         TextView task = parent.findViewById(R.id.task_title);
-        //On affiche le texte de façon à ce qu'il ne soit plus barré s'il l'était
-        task.setPaintFlags(task.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
+        String taskName = String.valueOf(task.getText());
+
 
         // On rend le bouton "à faire" invisible. Puisqu'on vient de cliquer dessus, c'est que la tâche est déjà faite.
         Button undoButton = parent.findViewById(R.id.task_undo);
-        undoButton.setVisibility(View.INVISIBLE);
+
+
         // À la place, on fait apparaître le bouton "fait", au cas où on souhaite annuler la précédente action
         Button doneButton = parent.findViewById(R.id.task_done);
-        doneButton.setVisibility(View.VISIBLE);
 
-        String taskName = String.valueOf(task.getText());
 
-        // On enregistre en base de données. Sinon en redémarrant l'application on perdrait le statut de toutes nos tâches.
-        updateInDataBase(taskName, TaskState.TODO);
     }
 
     // Méthode qui se lance lorsqu'on supprimer une tâche
     public void deleteTask(View view) {
-        // On supprime la tâche de l'affichage du téléphone
-        View parent = (View) view.getParent();
-        TextView taskTextView = parent.findViewById(R.id.task_title);
-        String task = String.valueOf(taskTextView.getText());
 
-        /* On supprime la tâche de la base de données.
-           Sinon en redémarrant le téléphone on afficherait à nouveau les tâches qu'on avait supprimé.
-        */
-        SQLiteDatabase db = mHelper.getWritableDatabase();
-        db.delete(TaskContract.TaskEntry.TABLE,
-                TaskContract.TaskEntry.COL_TASK_TITLE + " = ?",
-                new String[]{task});
-        db.close();
-        updateUI();
+
     }
 }
